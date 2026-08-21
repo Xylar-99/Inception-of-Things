@@ -1,31 +1,41 @@
 Vagrant.configure("2") do |config|
 
-  #server setup
+  # Global configuration
+  config.vm.box = "bento/ubuntu-24.04"
+
+  # Server
   config.vm.define "abquaoubS" do |server|
-    server.vm.box = "bento/ubuntu-20.04"
     server.vm.hostname = "abquaoubS"
 
-    server.vm.network "private_network", ip: "192.168.56.110"
+    server.vm.network "private_network",
+      ip: "192.168.56.110"
 
     server.vm.provider "virtualbox" do |vb|
-      vb.cpus = 1
-      vb.memory = 512
       vb.name = "abquaoubS"
+      vb.cpus = 1
+      vb.memory = 1024
     end
+
+    server.vm.provision "shell",
+      path: "scripts/server.sh"
   end
- 
-  #worker setup
+
+  
+  # Worker
   config.vm.define "abquaoubSW" do |worker|
-    worker.vm.box = "bento/ubuntu-20.04"
     worker.vm.hostname = "abquaoubSW"
 
-    worker.vm.network "private_network", ip: "192.168.56.111"
+    worker.vm.network "private_network",
+      ip: "192.168.56.111"
 
     worker.vm.provider "virtualbox" do |vb|
-      vb.cpus = 1
-      vb.memory = 512
       vb.name = "abquaoubSW"
+      vb.cpus = 1
+      vb.memory = 1024
     end
+
+    worker.vm.provision "shell",
+      path: "scripts/worker.sh"
   end
 
 end
