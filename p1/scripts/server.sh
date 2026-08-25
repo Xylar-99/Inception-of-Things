@@ -2,22 +2,19 @@
 
 set -e
 
-echo "=== Configuring SSH ==="
 
 apt-get update
-apt-get install -y openssh-server
+apt-get install -y  net-tools
 
-systemctl enable --now ssh
 
-mkdir -p /home/vagrant/.ssh
+curl -sfL https://get.k3s.io | \
+    INSTALL_K3S_EXEC="server --write-kubeconfig-mode 644" \
+    sh -
 
-chmod 700 /home/vagrant/.ssh
 
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEe4xCg2FZVBAj5Vqmku3bdADg1fVxOzH9G7GaAJZay0 abdelbassat@abdelbassat-HVY-WXX9
-" >> /home/vagrant/.ssh/authorized_keys
+systemctl is-active --quiet k3s
 
-chmod 600 /home/vagrant/.ssh/authorized_keys
+echo "alias k=kubectl" >> /home/vagrant/.bashrc
 
-chown -R vagrant:vagrant /home/vagrant/.ssh
-
-echo "=== SSH configured ==="
+# Make the token available to the worker through Vagrant's shared folder
+cat /var/lib/rancher/k3s/server/node-token > /vagrant/k3s-token

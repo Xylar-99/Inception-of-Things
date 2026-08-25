@@ -2,22 +2,29 @@
 
 set -e
 
-echo "=== Configuring SSH ==="
+SERVER_IP="192.168.56.110"
+
+
+# Wait until the server creates the token
+while [ ! -f /vagrant/k3s-token ]; do
+    sleep 2
+done
+
+
+K3S_TOKEN=$(cat /vagrant/k3s-token)
+
 
 apt-get update
-apt-get install -y openssh-server
+apt-get install -y  net-tools
 
-systemctl enable --now ssh
 
-mkdir -p /home/vagrant/.ssh
+curl -sfL https://get.k3s.io | \
+    K3S_URL="https://${SERVER_IP}:6443" \
+    K3S_TOKEN="${K3S_TOKEN}" \
+    sh -
 
-chmod 700 /home/vagrant/.ssh
 
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEe4xCg2FZVBAj5Vqmku3bdADg1fVxOzH9G7GaAJZay0 abdelbassat@abdelbassat-HVY-WXX9
-" >> /home/vagrant/.ssh/authorized_keys
+systemctl is-active --quiet k3s-agent
 
-chmod 600 /home/vagrant/.ssh/authorized_keys
-
-chown -R vagrant:vagrant /home/vagrant/.ssh
-
-echo "=== SSH configured ==="
+# k = kubectl
+echo "alias k=kubectl" >> /home/vagrant/.bashrc
