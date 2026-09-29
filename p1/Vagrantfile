@@ -18,6 +18,8 @@ WORKER_SCRIPT = "scripts/worker.sh"
 
 PROVIDER = "libvirt"
 
+
+
 Vagrant.configure("2") do |config|
 
   # Global configuration
