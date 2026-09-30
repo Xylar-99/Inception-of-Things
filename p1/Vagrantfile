@@ -1,41 +1,70 @@
+# =========================
+# Variables
+# =========================
+
+BOX = "bento/ubuntu-24.04"
+
+SERVER_NAME = "abquaoubS"
+SERVER_IP   = "192.168.56.110"
+
+WORKER_NAME = "abquaoubSW"
+WORKER_IP   = "192.168.56.111"
+
+CPUS   = 1
+MEMORY = 1024
+
+SERVER_SCRIPT = "scripts/server.sh"
+WORKER_SCRIPT = "scripts/worker.sh"
+
+PROVIDER = "libvirt"
+
+
+
 Vagrant.configure("2") do |config|
 
   # Global configuration
-  config.vm.box = "bento/ubuntu-24.04"
+  config.vm.box = BOX
 
+
+  # =========================
   # Server
-  config.vm.define "abquaoubS" do |server|
-    server.vm.hostname = "abquaoubS"
+  # =========================
+
+  config.vm.define SERVER_NAME do |server|
+
+    server.vm.hostname = SERVER_NAME
 
     server.vm.network "private_network",
-      ip: "192.168.56.110"
+      ip: SERVER_IP
 
-    server.vm.provider "virtualbox" do |vb|
-      vb.name = "abquaoubS"
-      vb.cpus = 1
-      vb.memory = 1024
+    server.vm.provider PROVIDER do |lv|
+      lv.cpus   = CPUS
+      lv.memory = MEMORY
     end
 
     server.vm.provision "shell",
-      path: "scripts/server.sh"
+      path: SERVER_SCRIPT
   end
 
-  
+
+  # =========================
   # Worker
-  config.vm.define "abquaoubSW" do |worker|
-    worker.vm.hostname = "abquaoubSW"
+  # =========================
+
+  config.vm.define WORKER_NAME do |worker|
+
+    worker.vm.hostname = WORKER_NAME
 
     worker.vm.network "private_network",
-      ip: "192.168.56.111"
+      ip: WORKER_IP
 
-    worker.vm.provider "virtualbox" do |vb|
-      vb.name = "abquaoubSW"
-      vb.cpus = 1
-      vb.memory = 1024
+    worker.vm.provider PROVIDER do |lv|
+      lv.cpus   = CPUS
+      lv.memory = MEMORY
     end
 
     worker.vm.provision "shell",
-      path: "scripts/worker.sh"
+      path: WORKER_SCRIPT
   end
 
 end
