@@ -14,7 +14,7 @@ bash scripts/install.sh
 # Configuration
 # ==================================================
 
-CLUSTER="iot"
+CLUSTER="iot-bonus"
 ARGOCD_VERSION="v3.5.3"
 GITLAB_VERSION="10.4.1"
 
@@ -106,6 +106,11 @@ kubectl rollout status \
     -n argocd \
     --timeout=5m
 
+
+
+# apply the Argo CD configuration
+kubectl apply \
+    -f confs/app.yaml
 
 # Create Argo CD ingress
 kubectl apply \

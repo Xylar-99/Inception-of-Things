@@ -15,7 +15,7 @@ bash scripts/install.sh
 # Configuration
 # ==================================================
 
-CLUSTER_NAME="iot"
+CLUSTER_NAME="iot-p3"
 
 
 # ==================================================
@@ -145,8 +145,7 @@ kubectl rollout status \
 echo
 echo "Creating Argo CD ingress..."
 
-kubectl apply \
-    -f confs/argocd-ingress.yaml
+kubectl apply -f confs/argocd-ingress.yaml
 
 
 # ==================================================
@@ -156,8 +155,7 @@ kubectl apply \
 echo
 echo "Creating application..."
 
-kubectl apply \
-    -f confs/app.yaml
+kubectl apply -f confs/app.yaml
 
 
 # ==================================================
