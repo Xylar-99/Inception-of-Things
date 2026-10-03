@@ -637,7 +637,8 @@ spec:
                           description: Helm holds helm specific options
                           properties:
                             apiVersions:
-                              description: |-
+     kubectl version --client
+k3d version                         description: |-
                                 APIVersions specifies the Kubernetes resource API versions to pass to Helm when templating manifests. By default,
                                 Argo CD uses the API versions of the target cluster. The format is [group/]version/kind.
                               items:

@@ -1,0 +1,50 @@
+# Only local overrides. Dependency connections come from the helper's values.
+global:
+  edition: ce
+  hosts:
+    domain: iot.local
+    https: false
+    gitlab:
+      name: gitlab.iot.local
+  ingress:
+    enabled: true
+    provider: traefik
+    class: traefik
+    configureCertmanager: false
+    tls:
+      enabled: false
+  gatewayApi:
+    enabled: false
+    installEnvoy: false
+    configureCertmanager: false
+  kas:
+    enabled: false
+  registry:
+    enabled: false
+
+installCertmanager: false
+nginx-ingress:
+  enabled: false
+gitlab-runner:
+  install: false
+registry:
+  enabled: false
+prometheus:
+  install: false
+
+gitlab:
+  gitlab-exporter:
+    enabled: false
+  webservice:
+    minReplicas: 1
+    maxReplicas: 1
+  sidekiq:
+    minReplicas: 1
+    maxReplicas: 1
+  gitlab-shell:
+    # All clones/pushes use HTTP; no SSH listener is needed.
+    enabled: false
+  gitaly:
+    persistence:
+      storageClass: local-path
+      size: 5Gi

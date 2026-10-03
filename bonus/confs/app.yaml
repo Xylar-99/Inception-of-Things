@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: playground
+  namespace: argocd
+
+spec:
+  project: default
+  source:
+    # Workhorse Service/port verified in chart 10.4.1 for release "gitlab".
+    repoURL: http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/iot-test/iot-test.git
+    targetRevision: main
+    path: manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
