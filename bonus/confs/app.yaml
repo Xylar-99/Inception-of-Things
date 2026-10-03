@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     # Workhorse Service/port verified in chart 10.4.1 for release "gitlab".
-    repoURL: http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/iot-test/iot-test.git
+    repoURL:  http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/iot/abquaoub-iot.git
     targetRevision: main
     path: manifests
   destination:

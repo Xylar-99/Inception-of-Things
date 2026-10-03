@@ -8,6 +8,7 @@ metadata:
 spec:
   project: default
 
+    # repoURL: https://github.com/younesonj/younajja_iot_argocd.git
   source:
     repoURL: https://github.com/Xylar-99/IOT-test.git
     targetRevision: main
