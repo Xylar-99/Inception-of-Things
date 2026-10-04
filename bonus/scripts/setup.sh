@@ -35,8 +35,6 @@ echo
 echo "Creating fresh k3d cluster..."
 
 
-k3d cluster delete "$CLUSTER" 2>/dev/null || true
-
 k3d cluster create "$CLUSTER"  -p "80:80@loadbalancer"
 
 k3d kubeconfig merge "$CLUSTER" --kubeconfig-switch-context
@@ -121,10 +119,10 @@ install_gitlab_dependencies()
         cd "$CHART_DIR"
 
         NAMESPACE=gitlab \
-        VALKEY_CHART_VERSION="$VALKEY_VERSION" \
-        CNPG_CHART_VERSION="$CNPG_VERSION" \
-        CNPG_POSTGRESQL_TAG="$POSTGRES_VERSION" \
-        GARAGE_APP_VERSION="$GARAGE_VERSION" \
+        VALKEY_CHART_VERSION="0.12.0" \
+        CNPG_CHART_VERSION="0.29.0" \
+        CNPG_POSTGRESQL_TAG="17" \
+        GARAGE_APP_VERSION="2.2.0" \
         bash scripts/dev_dependencies.sh setup
     )
 }
