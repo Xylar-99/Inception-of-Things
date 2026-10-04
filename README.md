@@ -92,8 +92,7 @@ The script expects a new cluster; rerunning it with `iot-p3` already present fai
 
 ## Bonus: GitLab-backed GitOps
 
-Dependency versions are supplied directly in setup: Valkey chart `0.12.0`, CloudNativePG chart `0.29.0`, PostgreSQL `17`, and Garage `2.2.0`. See [REPORT.md](REPORT.md) for the fix and remaining concerns.
-
+Dependency versions are supplied directly in setup: Valkey chart `0.12.0`, CloudNativePG chart `0.29.0`, PostgreSQL `17`, and Garage `2.2.0`.
 The intended entry point is:
 
 ```bash
