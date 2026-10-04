@@ -93,7 +93,7 @@ The script expects a new cluster; rerunning it with `iot-p3` already present fai
 ## Bonus: GitLab-backed GitOps
 
 Dependency versions are supplied directly in setup: Valkey chart `0.12.0`, CloudNativePG chart `0.29.0`, PostgreSQL `17`, and Garage `2.2.0`.
-The intended entry point is:
+From the repository root, run:
 
 ```bash
 bash bonus/scripts/setup.sh
@@ -101,7 +101,7 @@ bash bonus/scripts/setup.sh
 
 It creates `iot-bonus`, installs Argo CD `v3.5.3`, and installs GitLab chart `10.4.1`. The chart source is cached under `~/.cache/iot/gitlab-10.4.1`. Its development helpers supply database, cache, and object-storage dependencies; local overrides disable several optional components and enable HTTP ingress through Traefik.
 
-Advertised interfaces:
+Open these services after setup:
 
 | Service | URL | Username |
 | --- | --- | --- |
@@ -114,28 +114,11 @@ Passwords are printed at the end of setup. The Argo CD Application uses this int
 http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/iot/abquaoub-iot.git
 ```
 
-The setup does not create the `iot` group, the `abquaoub-iot` project, or its Git contents. After GitLab is available, create that repository and push a `main` branch containing the application manifests under `manifests/`. Make it readable by Argo CD: a private repository requires credentials, which the current setup does not configure. An ingress for `app.iot.local` must come from those application manifests if that URL is desired.
+After GitLab is installed:
 
-## Review findings
+1. Log in to `http://gitlab.iot.local` as `root` using the printed password.
+2. Create a group named `iot` and a project inside it named `abquaoub-iot`.
+3. Push your application's Kubernetes manifests into a `manifests/` directory on the `main` branch.
+4. Make the repository public, or configure repository credentials in Argo CD for a private project.
 
-The initial review left scripts and configuration unchanged. A subsequent requested fix replaced undefined bonus dependency variables with literal versions. See [REPORT.md](REPORT.md) for findings by part. The project has a coherent structure, but cannot be declared fully working from static checks alone.
-
-1. **Bonus dependency variables were fixed.** Setup now supplies literal versions to the dependency helper. Full deployment still needs verification.
-2. **Bonus Git repository provisioning is manual by design.** Create the agreed GitLab project and push the application manifests after GitLab is installed; configure credentials if the project is private.
-3. **Several waits have no timeout.** Part 1 waits indefinitely for the token file, part 2 for Kubernetes API access, and part 3 for the `playground` Service. A missing prerequisite or failed sync can leave setup running indefinitely.
-4. **Part 1 depends on shared-folder behavior.** Verify that the libvirt shared-folder implementation exposes the server-generated token to the worker. There is no alternative token transport in the scripts.
-5. **VM networking needs runtime verification.** The VMs have a management interface plus a private interface, but K3s installation does not explicitly select a node IP or Flannel interface. Check `kubectl get nodes -o wide` and server-agent communication on the actual provider.
-6. **Provisioning completion is not application readiness.** Part 2 applies manifests without waiting for deployments or ingress readiness. Part 3 initially waits only for the Argo CD server deployment, rather than all Argo CD components.
-7. **Some dependencies are unpinned.** K3s, k3d, kubectl, and Nginx images are selected through latest/default versions, while Argo CD and the GitLab chart are pinned. Reproducibility and version compatibility need verification during deployment.
-8. **Part 1 and part 2 installer pipelines lack `pipefail`.** A failed `curl` can be hidden by the exit status of the downstream shell. Their dependency installation also assumes `curl` is already present in the VM image.
-9. **Local credentials are exposed intentionally.** K3s kubeconfig is installed with mode `644`, join tokens are written into shared folders, and setup prints administrator passwords. These settings are intended for a local learning environment.
-
-## Validation performed
-
-- Bash syntax checks passed for all seven shell scripts.
-- Ruby syntax checks passed for both Vagrantfiles.
-- `vagrant validate` passed in both `p1/` and `p2/`.
-- All nine YAML files parsed successfully (15 YAML documents total).
-- Deployment selectors, Service selectors, and local ingress backend references were inspected.
-
-These checks do not validate Kubernetes schemas, Helm rendering, external repository contents, download availability, or actual cluster behavior. No provisioning, installation, cluster deletion, or application deployment was performed during this review. No assignment specification was provided, so exact evaluation compliance was not assessed.
+Argo CD automatically deploys the manifests into the `dev` namespace. Include an ingress for `app.iot.local` in those manifests to access the application at `http://app.iot.local`.
