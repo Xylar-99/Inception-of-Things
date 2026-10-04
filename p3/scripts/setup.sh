@@ -4,166 +4,96 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 
-# ==================================================
+# Configuration
+
+CLUSTER="iot-p3"
+ARGOCD_VERSION="v3.5.3"
+
+
 # Install required tools
-# ==================================================
 
 bash scripts/install.sh
 
 
-# ==================================================
-# Configuration
-# ==================================================
+# Local hostnames
 
-CLUSTER_NAME="iot-p3"
-
-
-# ==================================================
-# Local hostname
-# ==================================================
-
-if ! grep -q "argocd.iot.local" /etc/hosts; then
+grep -q "argocd.iot.local" /etc/hosts ||
     echo "127.0.0.1 argocd.iot.local" | sudo tee -a /etc/hosts
 
-fi
-
-if ! grep -q "app.iot.local" /etc/hosts; then
+grep -q "app.iot.local" /etc/hosts ||
     echo "127.0.0.1 app.iot.local" | sudo tee -a /etc/hosts
-fi
 
 
-
-# ==================================================
-# Create k3d cluster
-# ==================================================
-
-if ! k3d cluster list | grep -q "$CLUSTER_NAME"; then
-
-    echo
-    echo "Creating k3d cluster..."
-
-    k3d cluster create "$CLUSTER_NAME" \
-        -p "80:80@loadbalancer"
-
-fi
-
-
-# ==================================================
-# Select cluster
-# ==================================================
-
-k3d kubeconfig merge "$CLUSTER_NAME" \
-    --kubeconfig-switch-context
-
-
-# ==================================================
-# Wait for Kubernetes
-# ==================================================
+# Create fresh k3d cluster
 
 echo
-echo "Waiting for Kubernetes..."
-
-kubectl wait \
-    --for=condition=Ready \
-    nodes \
-    --all \
-    --timeout=120s
+echo "Creating fresh k3d cluster..."
 
 
-# ==================================================
+k3d cluster create "$CLUSTER" -p "80:80@loadbalancer"
+
+k3d kubeconfig merge "$CLUSTER" --kubeconfig-switch-context
+
+kubectl wait --for=condition=Ready nodes --all --timeout=180s
+
+
 # Create namespaces
-# ==================================================
 
-echo
-echo "Creating namespaces..."
-
-kubectl create namespace dev \
-    --dry-run=client -o yaml \
-    | kubectl apply -f -
-
-kubectl create namespace argocd \
-    --dry-run=client -o yaml \
-    | kubectl apply -f -
+kubectl create namespace dev
+kubectl create namespace argocd
 
 
-# ==================================================
 # Install Argo CD
-# ==================================================
 
 echo
 echo "Installing Argo CD..."
 
 kubectl apply \
     -n argocd \
-    --server-side \
-    --force-conflicts \
-    -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-
-
-# ==================================================
-# Wait for Argo CD
-# ==================================================
-
-echo
-echo "Waiting for Argo CD..."
+    -f "https://raw.githubusercontent.com/argoproj/argo-cd/$ARGOCD_VERSION/manifests/install.yaml"
 
 kubectl wait \
     --for=condition=Available \
     deployment/argocd-server \
     -n argocd \
-    --timeout=300s
+    --timeout=10m
 
 
-# ==================================================
-# Allow HTTP behind Traefik
-# ==================================================
+# Configure Argo CD
 
-echo
-echo "Configuring Argo CD..."
+#   this is mean nto used https only http 
+
+# Allow Argo CD HTTP behind Traefik
 
 kubectl patch configmap argocd-cmd-params-cm \
     -n argocd \
     --type merge \
     -p '{"data":{"server.insecure":"true"}}'
 
-
-kubectl rollout restart \
-    deployment/argocd-server \
-    -n argocd
-
+kubectl rollout restart deployment/argocd-server -n argocd
 
 kubectl rollout status \
     deployment/argocd-server \
     -n argocd \
-    --timeout=300s
+    --timeout=5m
 
 
-# ==================================================
-# Argo CD Ingress
-# ==================================================
-
-echo
-echo "Creating Argo CD ingress..."
-
-kubectl apply -f confs/argocd-ingress.yaml
-
-
-# ==================================================
-# Create Argo CD Application
-# ==================================================
-
-echo
-echo "Creating application..."
+# Argo CD application
 
 kubectl apply -f confs/app.yaml
 
 
-# ==================================================
-# Wait for application Service
-# ==================================================
+# Argo CD ingress
+
+kubectl apply -f confs/argocd-ingress.yaml
+
+echo "Argo CD ready."
+
+
+# Wait for application
 
 echo
-echo "Waiting for playground service..."
+echo "Waiting for playground..."
 
 until kubectl get service playground \
     -n dev >/dev/null 2>&1
@@ -171,76 +101,42 @@ do
     sleep 2
 done
 
-
-# ==================================================
-# Wait for application Pod
-# ==================================================
-
-echo
-echo "Waiting for playground pod..."
-
 kubectl wait \
     --for=condition=Ready \
     pod \
     -l app=playground \
     -n dev \
-    --timeout=300s
+    --timeout=5m
 
 
-# ==================================================
-# Get Argo CD password
-# ==================================================
+# Get credentials
 
 ARGOCD_PASSWORD=$(
     kubectl get secret \
         argocd-initial-admin-secret \
         -n argocd \
-        -o jsonpath="{.data.password}" \
-        | base64 -d
+        -o jsonpath='{.data.password}' |
+        base64 -d
 )
 
 
-# ==================================================
-# Result
-# ==================================================
+# Results
 
 echo
 echo "========================================"
-echo "               P3 READY"
+echo "                ARGO CD"
 echo "========================================"
-
-echo
-echo "Kubernetes:"
-kubectl get nodes
-
-echo
-echo "Application:"
-kubectl get pods -n dev
-
-echo
-echo "Argo CD:"
-kubectl get pods -n argocd
-
-echo
-echo "Ingress:"
-kubectl get ingress -n argocd
+echo "URL:      http://argocd.iot.local"
+echo "Username: admin"
+echo "Password: $ARGOCD_PASSWORD"
 
 echo
 echo "========================================"
-echo "               ARGO CD"
+echo "              APPLICATION"
 echo "========================================"
+echo "URL:      http://app.iot.local"
 
 echo
-echo "URL:"
-echo "http://argocd.iot.local"
-
-echo
-echo "Username:"
-echo "admin"
-
-echo
-echo "Password:"
-echo "$ARGOCD_PASSWORD"
-
-echo
+echo "========================================"
+echo "               ALL READY"
 echo "========================================"
