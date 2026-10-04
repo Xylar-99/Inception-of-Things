@@ -49,8 +49,10 @@ echo
 echo "Installing Argo CD..."
 
 kubectl apply \
+    --server-side \
     -n argocd \
     -f "https://raw.githubusercontent.com/argoproj/argo-cd/$ARGOCD_VERSION/manifests/install.yaml"
+
 
 kubectl wait \
     --for=condition=Available \
