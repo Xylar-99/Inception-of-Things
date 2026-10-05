@@ -1,8 +1,4 @@
-# =========================
-# Variables
-# =========================
-
-BOX = "bento/ubuntu-24.04"
+BOX = "debian/bookworm64"
 
 SERVER_NAME = "abquaoubS"
 SERVER_IP   = "192.168.56.110"
@@ -16,15 +12,15 @@ MEMORY = 1024
 SERVER_SCRIPT = "scripts/server.sh"
 WORKER_SCRIPT = "scripts/worker.sh"
 
-PROVIDER = "libvirt"
-
-
+PROVIDER = "virtualbox"
 
 Vagrant.configure("2") do |config|
 
-  # Global configuration
   config.vm.box = BOX
 
+  # Shared between host, server and worker.
+  # Used to transfer the K3s token.
+  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
 
   # =========================
   # Server
@@ -37,15 +33,15 @@ Vagrant.configure("2") do |config|
     server.vm.network "private_network",
       ip: SERVER_IP
 
-    server.vm.provider PROVIDER do |lv|
-      lv.cpus   = CPUS
-      lv.memory = MEMORY
+    server.vm.provider PROVIDER do |vb|
+      vb.name   = SERVER_NAME
+      vb.cpus   = CPUS
+      vb.memory = MEMORY
     end
 
     server.vm.provision "shell",
       path: SERVER_SCRIPT
   end
-
 
   # =========================
   # Worker
@@ -58,9 +54,10 @@ Vagrant.configure("2") do |config|
     worker.vm.network "private_network",
       ip: WORKER_IP
 
-    worker.vm.provider PROVIDER do |lv|
-      lv.cpus   = CPUS
-      lv.memory = MEMORY
+    worker.vm.provider PROVIDER do |vb|
+      vb.name   = WORKER_NAME
+      vb.cpus   = CPUS
+      vb.memory = MEMORY
     end
 
     worker.vm.provision "shell",
