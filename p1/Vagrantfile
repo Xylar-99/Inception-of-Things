@@ -14,24 +14,25 @@ WORKER_SCRIPT = "scripts/worker.sh"
 
 PROVIDER = "virtualbox"
 
+BRIDGE_INTERFACE = "enp0s3"
+
 Vagrant.configure("2") do |config|
 
   config.vm.box = BOX
 
-  # Shared between host, server and worker.
-  # Used to transfer the K3s token.
   config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
-
-  # =========================
-  # Server
-  # =========================
 
   config.vm.define SERVER_NAME do |server|
 
     server.vm.hostname = SERVER_NAME
 
+    # Required private IP
     server.vm.network "private_network",
       ip: SERVER_IP
+
+    # Bridged network
+    server.vm.network "public_network",
+      bridge: BRIDGE_INTERFACE
 
     server.vm.provider PROVIDER do |vb|
       vb.name   = SERVER_NAME
@@ -43,16 +44,17 @@ Vagrant.configure("2") do |config|
       path: SERVER_SCRIPT
   end
 
-  # =========================
-  # Worker
-  # =========================
-
   config.vm.define WORKER_NAME do |worker|
 
     worker.vm.hostname = WORKER_NAME
 
+    # Required private IP
     worker.vm.network "private_network",
       ip: WORKER_IP
+
+    # Bridged network
+    worker.vm.network "public_network",
+      bridge: BRIDGE_INTERFACE
 
     worker.vm.provider PROVIDER do |vb|
       vb.name   = WORKER_NAME

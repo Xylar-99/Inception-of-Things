@@ -42,5 +42,4 @@ done
 
 echo 'alias k=kubectl' >> /home/vagrant/.bashrc
 
-sudo chmod 644 /etc/rancher/k3s/k3s.yaml
 
